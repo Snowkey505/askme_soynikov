@@ -1,0 +1,43 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="d-flex align-items-center gap-2">
+    <h1>Settings:</h1>
+    <h1><a href="#" style="font-size: 24px; text-decoration: none;">Dr. Pepper</a></h1>
+</div>
+
+<div class="col-md-8">
+    <form class="was-validated">
+        <div class="mb-3">
+            <label for="validationLogin" class="form-label fs-5">Login</label>
+            <textarea class="form-control is-valid" id="validationLogin" placeholder="Your Login" required
+                      style="height: 40px;"></textarea>
+            <div class="invalid-feedback">Please enter your login</div>
+        </div>
+        <div class="mb-3">
+            <label for="validationEmail" class="form-label fs-5">Email</label>
+            <textarea class="form-control is-valid" id="validationEmail" placeholder="Your email" required
+                      style="height: 40px;"></textarea>
+            <div class="invalid-feedback">Please enter your email</div>
+        </div>
+        <div class="mb-3">
+            <label for="validationNickName" class="form-label fs-5">NickName</label>
+            <textarea class="form-control is-valid" id="validationNickName" placeholder="Your nickname" required
+                      style="height: 40px;"></textarea>
+            <div class="invalid-feedback">Please enter your nickname</div>
+        </div>
+        <div class="mb-3">
+            <label for="validationAva" class="form-label fs-5">Upload Avatar</label>
+            <div class="d-flex align-items-center gap-2">
+                <img src="../static/img/avatar_dark.png" alt="Current Avatar" class="img-thumbnail"
+                     style="height: 100px;">
+                <input type="file" class="form-control" aria-label="file example" required>
+            </div>
+            <div class="invalid-feedback">Please upload a valid file</div>
+        </div>
+        <button class="btn btn-primary mt-3" type="submit">Update Settings</button>
+    </form>
+</div>
+
+{% endblock %}

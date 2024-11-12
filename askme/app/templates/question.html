@@ -1,0 +1,17 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="col-9">
+    <div class="d-flex flex-column gap-3 mb-4">
+        {% include 'layouts/question.html' %}
+    </div>
+
+    {% for answer in answers %}
+        {% include 'layouts/answer.html' %}
+    {% endfor %}
+
+    {% include 'layouts/pagination.html' %}
+</div>
+
+{% endblock %}

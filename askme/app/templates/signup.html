@@ -1,0 +1,93 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="d-flex gap-4">
+    <h2>Registration</h2>
+</div>
+
+<div class="col-9">
+    <form class="was-validated">
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-3">
+                    <label for="validationLogin" class="form-label" style="font-size: 20px;">Login</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control is-valid" id="validationLogin" placeholder="Your Login"
+                           required>
+                    <div class="invalid-feedback">Please enter your login</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-3">
+                    <label for="validationEmail" class="form-label" style="font-size: 20px;">Email</label>
+                </div>
+                <div class="col">
+                    <input type="email" class="form-control is-valid" id="validationEmail" placeholder="Your email"
+                           required>
+                    <div class="invalid-feedback">Please enter a valid email</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-3">
+                    <label for="validationNickName" class="form-label" style="font-size: 20px;">NickName</label>
+                </div>
+                <div class="col">
+                    <input type="text" class="form-control is-valid" id="validationNickName"
+                           placeholder="Your nickname" required>
+                    <div class="invalid-feedback">Please enter your nickname</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-3">
+                    <label for="validationPassword" class="form-label" style="font-size: 20px;">Password</label>
+                </div>
+                <div class="col">
+                    <input type="password" class="form-control is-valid" id="validationPassword"
+                           placeholder="Your password" required>
+                    <div class="invalid-feedback">Please enter your password</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="row">
+                <div class="col-3">
+                    <label for="validationRepeatPswrd" class="form-label" style="font-size: 20px;">Repeat
+                        password</label>
+                </div>
+                <div class="col">
+                    <input type="password" class="form-control is-valid" id="validationRepeatPswrd"
+                           placeholder="Password again" required>
+                    <div class="invalid-feedback">Please repeat your password</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-3">
+                <label for="validationAva" class="form-label" style="font-size: 20px;">Upload Avatar</label>
+            </div>
+            <div class="col">
+                <input type="file" class="form-control" id="validationAva" aria-label="file example" required>
+                <div class="invalid-feedback">Please upload an avatar</div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-3">
+            <button class="btn btn-primary" type="submit" data-mdb-ripple-init>Register!</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
