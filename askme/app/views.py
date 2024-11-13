@@ -62,7 +62,6 @@ def tag(req, tag_name):
         'tag': tag})
 
 
-
 def hot(req):
     profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
     paginated_cards = paginate(Question.objects.popular(), req, 4)
@@ -77,7 +76,8 @@ def hot(req):
 def question(req, question_id):
     profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
     question = get_object_or_404(Question.objects.annotate(likes_count=Count('likes')), id=question_id)
-    paginated_answers = paginate(Answer.objects.answers(question=question).annotate(likes_count=Count('likes')), req, 4)
+    paginated_answers = paginate(Answer.objects.answers(question=question).annotate(likes_count=Count('likes')),
+                                 req, 4)
     return render(req, 'question.html', context={
         'members': Profile.objects.best(),
         'tags': Tag.objects.popular().values_list('name', flat=True),
@@ -96,4 +96,3 @@ def ask(req):
         'tags': Tag.objects.popular().values_list('name', flat=True),
         'userpic': userpic,
         'username': req.user.username if req.user.is_authenticated else None})
-

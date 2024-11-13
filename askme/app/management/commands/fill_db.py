@@ -15,142 +15,58 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         ratio = options['ratio']
-        self.stdout.write(self.style.SUCCESS(f'Начало заполнения базы с коэффициентом: {ratio}'))
-        self.stdout.write(self.style.SUCCESS(f'Создание пользователей'))
         profiles = self.create_users(ratio)
-        self.stdout.write(self.style.SUCCESS(f'Создание тегов'))
         tags = self.create_tags(ratio)
-        self.stdout.write(self.style.SUCCESS(f'Создание вопросов'))
         questions = self.create_questions(ratio, tags, profiles)
-        self.stdout.write(self.style.SUCCESS(f'Создание ответов'))
         self.create_answers(ratio, questions, profiles)
-        self.stdout.write(self.style.SUCCESS(f'Создание лайков'))
         self.create_likes(ratio, questions, profiles)
         self.stdout.write(self.style.SUCCESS('База данных успешно заполнена!'))
 
     def create_users(self, ratio):
-        users = []
-        profiles = []
-        fake.unique.clear()
-
-        for i in range(ratio):
-            username = fake.unique.user_name()
-            email = fake.unique.email()
-            user = User(username=username, email=email)
-            users.append(user)
-
+        users = [User(username=fake.unique.user_name(), email=fake.unique.email()) for _ in range(ratio)]
         User.objects.bulk_create(users)
-
-        new_users = User.objects.order_by('-id')
-        for user in new_users:
-            self.stdout.write(self.style.SUCCESS(f'\rНомер пользователя: {len(profiles)}'))
-            if not Profile.objects.filter(user=user).exists():
-                profile = Profile(user=user, avatar=None)
-                profiles.append(profile)
-
+        profiles = [Profile(user=user, avatar=None) for user in User.objects.order_by('-id')[:ratio]]
         Profile.objects.bulk_create(profiles)
-        self.stdout.write(self.style.SUCCESS(f'Создано пользователей: {len(profiles)}'))
-        return profiles
+        return Profile.objects.order_by('-id')[:ratio]
 
     def create_tags(self, ratio):
         tags = set()
+        while len(tags) < ratio + 1:
+            tags.add(f"{fake.word()}_{random.randint(0, 100)}")
+        Tag.objects.bulk_create([Tag(name=name) for name in tags])
+        return Tag.objects.all()
 
-        while len(tags) < ratio:
-            self.stdout.write(self.style.SUCCESS(f'\rНомер тега: {len(tags)}'))
-            name = f"{fake.word()}_{random.randint(0, 100)}"
-            tags.add(name)
-
-        tag_objects = [Tag(name=name) for name in tags]
-        Tag.objects.bulk_create(tag_objects)
-        self.stdout.write(self.style.SUCCESS(f'Создано тегов: {len(tag_objects)}'))
-        return list(Tag.objects.all())
-
-    def create_questions(self, ratio, tags, users):
-        profiles = users
-        questions = []
-        title_pool = [fake.sentence() for i in range(1000)]
-        text_pool = [fake.text() for i in range(1000)]
-        for profile in profiles:
-            for i in range(10):
-                self.stdout.write(self.style.SUCCESS(f'\rНомер вопроса: {len(questions)}'))
-                question = Question(
-                    user=profile,
-                    title=random.choice(title_pool),
-                    text=random.choice(text_pool),
-                    image=None
-                )
-                questions.append(question)
-
+    def create_questions(self, ratio, tags, profiles):
+        title_pool = [fake.sentence() for _ in range(1000)]
+        text_pool = [fake.text() for _ in range(1000)]
+        questions = [Question(user=profile, title=random.choice(title_pool), text=random.choice(text_pool))
+                     for profile in profiles for _ in range(10)]
         Question.objects.bulk_create(questions)
-        questions = list(Question.objects.all())
-
-        count = 1
+        questions = Question.objects.all()
         for question in questions:
-            self.stdout.write(self.style.SUCCESS(f'\rНомер тега вопроса: {count}'))
             question.tags.add(*random.sample(tags, random.randint(5, 10)))
-            count += 1
-
-        self.stdout.write(self.style.SUCCESS(f'Создано вопросов: {ratio * 10}'))
         return questions
 
-    def create_answers(self, ratio, questions, users):
-        profiles = users
+    def create_answers(self, ratio, questions, profiles):
+        text_pool = [fake.text() for _ in range(1000)]
         answers = []
-        text_pool = [fake.text for i in range(1000)]
-        count = 0
-
         for question in questions:
             has_correct_answer = False
-            for i in range(100):
-                self.stdout.write(self.style.SUCCESS(f'\rНомер ответа: {count}'))
+            for _ in range(10):
                 profile = random.choice(profiles)
                 correct = random.random() < 0.1 and not has_correct_answer
                 has_correct_answer = has_correct_answer or correct
-                answer = Answer(
-                    question=question,
-                    user=profile,
-                    text=random.choice(text_pool),
-                    correct=correct
-                )
-                answers.append(answer)
-                count += 1
+                answers.append(Answer(question=question, user=profile, text=random.choice(text_pool), correct=correct))
+            question.answers_count = 10
+        Question.objects.bulk_update(questions, ['answers_count'])
+        for i in range(0, len(answers), 10000):
+            Answer.objects.bulk_create(answers[i:i + 10000])
 
-            if len(answers) >= 10000:
-                Answer.objects.bulk_create(answers)
-                answers.clear()
-
-        if answers:
-            Answer.objects.bulk_create(answers)
-
-        self.stdout.write(self.style.SUCCESS(f'Создано ответов: {count}'))
-
-    def create_likes(self, ratio, questions, users):
-        profiles = users
-        question_likes = []
-        answer_likes = []
-
-        for i in range(ratio * 100):
-            self.stdout.write(self.style.SUCCESS(f'\rНомер лайка вопроса: {i}'))
-            profile = random.choice(profiles)
-            question = random.choice(questions)
-            question_like = QuestionLike(
-                user=profile,
-                question=question
-            )
-            question_likes.append(question_like)
-
+    def create_likes(self, ratio, questions, profiles):
+        question_likes = [QuestionLike(user=random.choice(profiles), question=random.choice(questions))
+                          for _ in range(ratio * 200)]
         QuestionLike.objects.bulk_create(question_likes, ignore_conflicts=True)
-
-        answers = list(Answer.objects.all())
-        for i in range(ratio * 100):
-            self.stdout.write(self.style.SUCCESS(f'\rНомер лайка ответа: {i}'))
-            profile = random.choice(profiles)
-            answer = random.choice(answers)
-            answer_like = AnswerLike(
-                user=profile,
-                answer=answer
-            )
-            answer_likes.append(answer_like)
-
+        answers = Answer.objects.all()
+        answer_likes = [AnswerLike(user=random.choice(profiles), answer=random.choice(answers))
+                        for _ in range(ratio * 200)]
         AnswerLike.objects.bulk_create(answer_likes, ignore_conflicts=True)
-        self.stdout.write(self.style.SUCCESS(f'Создано лайков: {ratio * 200}'))
