@@ -10,9 +10,11 @@
 </div>
 <div class="col-9">
     <div class="d-flex flex-column gap-3">
-        {% for question in questions %}
+        {% for card in cards %}
             {% include 'layouts/question.html' %}
         {% endfor %}
+
+        {% include 'layouts/pagination.html' %}
 
     </div>
 </div>

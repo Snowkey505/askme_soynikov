@@ -17,7 +17,7 @@
                                 style="height: 40px;"
                         />
                     </button>
-                    <h2 style="color: black;">0</h2>
+                    <h2 style="color: black;">{{ card.likes_count }}</h2>
                     <button class="btn btn-light">
                         <img
                                 src="{% static 'img/like.png' %}"
@@ -31,14 +31,14 @@
             </div>
             <div class="col-9">
                 <h5 class="card-title">
-                    <a href="{% url 'question' question_id=question.id %}">{{ question.title }}</a>
+                    <a href="{% url 'question' card.id %}">{{ card.title }}</a>
                 </h5>
-                <p class="card-text">{{ question.text }}</p>
-                <a href="{% url 'question' question_id=question.id %}" class="card-link">answer (3)</a>
+                <p class="card-text">{{ card.text }}</p>
+                <a href="{% url 'question' card.id %}">answer ({{ card.answers.count }})</a>
                 <div class="mt-4 d-flex gap-2">
                     <span>Tags:</span>
-                    {% for tag in question.tags %}
-                        <a href="{% url 'tag' tag_name=tag %}" class="card-link">{{ tag }}</a>
+                    {% for tag in card.tags.all %}
+                        <a href="{% url 'tag' tag_name=tag.name %}" class="card-link">{{ tag.name }}</a>
                     {% endfor %}
                 </div>
             </div>

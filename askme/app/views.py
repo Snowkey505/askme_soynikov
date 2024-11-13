@@ -1,63 +1,99 @@
-import copy
-
-from django.core.paginator import Paginator
-from django.template.response import TemplateResponse
-from django.shortcuts import render
-
-QUESTIONS = [
-    {
-        'title': f'Title {i}',
-        'id': i,
-        'text': f'This is text for question № {i}',
-        'tags': ["tag_" + str(i % 4), "blabla"]
-    } for i in range(30)
-]
-
-ANSWERS = [f"Sometimes answer is in your knowledge, so you just have to just find it yorself {i}" for i in range(10)]
-
-TAGS = ["tag_0", "tag_1", "tag_2", "tag_3", "blabla"]
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import get_object_or_404, render
+from app.models import Question, Answer, Tag, Profile
+from django.db.models import Count
 
 
-def index(request):
-    page_num = request.GET.get('page', 1)
-    paginator = Paginator(QUESTIONS, 5)
-    page = paginator.page(page_num)
-    return render(request, 'index.html', context={'questions': page.object_list, 'page_obj': page, 'tags': TAGS})
+def paginate(obj_list, req, per_page=4):
+    paginator = Paginator(obj_list, per_page)
+    page_number = req.GET.get('page', 1)
+    try:
+        return paginator.get_page(page_number)
+    except PageNotAnInteger:
+        return paginator.get_page(1)
+    except EmptyPage:
+        return paginator.get_page(paginator.num_pages)
 
 
-def hot(request):
-    hot_questions = copy.deepcopy(QUESTIONS)
-    hot_questions.reverse()
-    return render(request, 'hot.html', context={'questions': hot_questions, 'tags': TAGS})
+def index(req):
+    paginated_cards = paginate(Question.objects.new(), req, 4)
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    return render(req, 'index.html', context={
+        'username': req.user.username if req.user.is_authenticated else None,
+        'userpic': profile.avatar.url if profile and profile.avatar else None,
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'cards': paginated_cards,
+        'auth': req.user.is_authenticated})
 
 
-def login(request):
-    return render(request, 'login.html', context={'tags': TAGS})
+def login(req):
+    return render(req, 'login.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True)})
 
 
-def settings(request):
-    return render(request, 'settings.html', context={'tags': TAGS})
+def signup(req):
+    return render(req, 'signup.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True)})
 
 
-def signup(request):
-    return render(request, 'signup.html', context={'tags': TAGS})
+def settings(req):
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    return render(req, 'settings.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'userpic': profile.avatar.url if profile and profile.avatar else None,
+        'username': req.user.username if req.user.is_authenticated else None})
 
 
-def tag(request, tag_name):
-    tag_questions = [question for question in QUESTIONS if tag_name in question['tags']]
-    page_num = request.GET.get('page', 1)
-    paginator = Paginator(tag_questions, 5)
-    page = paginator.page(page_num)
-    return render(request, 'tag.html', context={'questions': page.object_list, 'page_obj': page, 'tag_name': tag_name, 'tags': TAGS})
+def tag(req, tag_name):
+    tag = get_object_or_404(Tag, name=tag_name)
+    questions_with_tag = Question.objects.tag(tag)
+    paginated_cards = paginate(questions_with_tag, req, 6)
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    return render(req, 'tag.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'userpic': profile.avatar.url if profile and profile.avatar else None,
+        'username': req.user.username if req.user.is_authenticated else None,
+        'cards': paginated_cards,
+        'tag': tag})
 
 
-def question(request, question_id):
-    question = QUESTIONS[question_id]
-    page_num = request.GET.get('page', 1)
-    paginator = Paginator(ANSWERS, 3)
-    page = paginator.page(page_num)
-    return render(request, 'question.html', context={'question': question, 'tags': TAGS, 'answers': page.object_list, 'page_obj': page})
+
+def hot(req):
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    paginated_cards = paginate(Question.objects.popular(), req, 4)
+    return render(req, 'hot.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'userpic': profile.avatar.url if profile and profile.avatar else None,
+        'username': req.user.username if req.user.is_authenticated else None,
+        'cards': paginated_cards})
 
 
-def ask(request):
-    return render(request, 'ask.html', context={'tags': TAGS})
+def question(req, question_id):
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    question = get_object_or_404(Question.objects.annotate(likes_count=Count('likes')), id=question_id)
+    paginated_answers = paginate(Answer.objects.answers(question=question).annotate(likes_count=Count('likes')), req, 4)
+    return render(req, 'question.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'userpic': profile.avatar.url if profile and profile.avatar else None,
+        'username': req.user.username if req.user.is_authenticated else None,
+        'cards': paginated_answers,
+        'question': get_object_or_404(Question.objects.annotate(likes_count=Count('likes')), id=question_id),
+        'question_id': question_id})
+
+
+def ask(req):
+    profile = get_object_or_404(Profile, user_id=req.user.id) if req.user.is_authenticated else None
+    userpic = profile.avatar.url if profile and profile.avatar else None
+    return render(req, 'ask.html', context={
+        'members': Profile.objects.best(),
+        'tags': Tag.objects.popular().values_list('name', flat=True),
+        'userpic': userpic,
+        'username': req.user.username if req.user.is_authenticated else None})
+

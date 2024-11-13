@@ -18,21 +18,25 @@
             <input class="form-control me-2" type="search" name="query" placeholder="Search" aria-label="Search">
             <a class="btn btn-outline-success" style="color: aliceblue;" href="{% url 'ask' %}">Ask</a>
         </form>
+
+        {% if auth %}
+        <div class="d-flex gap-3">
+            <img src="../static/img/avatar.png" alt="Avatar"
+                 style="color: aliceblue; background-color: rgb(72, 131, 240); height: 80px;">
+            <div>
+                <div>
+                    <h2 style="color: white;">Dr. Pepper</h2>
+                </div>
+                <a href="#" style="color: aliceblue;">settings</a>
+                <a href="#" style="color: aliceblue;">log out</a>
+            </div>
+        </div>
+        {% else %}
         <div class="d-flex gap-3">
             <a href="{% url 'login' %}" style="color: aliceblue;">log in</a>
             <a href="{% url 'signup' %}" style="color: aliceblue;">register</a>
         </div>
-<!--        <div class="d-flex gap-3">-->
-<!--            <img src="../static/img/avatar.png" alt="Avatar"-->
-<!--                 style="color: aliceblue; background-color: rgb(72, 131, 240); height: 80px;">-->
-<!--            <div>-->
-<!--                <div>-->
-<!--                    <h2 style="color: white;">Dr. Pepper</h2>-->
-<!--                </div>-->
-<!--                <a href="#" style="color: aliceblue;">settings</a>-->
-<!--                <a href="#" style="color: aliceblue;">log out</a>-->
-<!--            </div>-->
-<!--        </div>-->
+        {% endif %}
     </div>
 </nav>
 
@@ -45,24 +49,23 @@
                 <h2>Popular Tags</h2>
                 <div>
                     {% for tag in tags %}
-                        <a href="{% url 'tag' tag_name=tag %}" class="badge text-bg-secondary">
-                           {{ tag }}
-                        </a>
+                    <a href="{% url 'tag' tag_name=tag %}" class="badge text-bg-secondary">
+                        {{ tag }}
+                    </a>
                     {% endfor %}
                 </div>
             </section>
 
             <section>
                 <h2>Best Members</h2>
-                <div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><a href="#">Member</a></li>
-                        <li class="list-group-item"><a href="#">Member</a></li>
-                        <li class="list-group-item"><a href="#">Member</a></li>
-                        <li class="list-group-item"><a href="#">Member</a></li>
-                        <li class="list-group-item"><a href="#">Member</a></li>
-                    </ul>
-                </div>
+                <ul class="list-group shadow">
+                    {% for member in members %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <p style="all: unset;">{{ member.user.username }}</p>
+                        <span class="badge bg-primary rounded-pill">{{ member.answer_likes }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
             </section>
         </div>
     </div>

@@ -4,12 +4,12 @@
 
 <div class="d-flex gap-3">
     <h1>Tag: </h1>
-    <h1><a href="#" style="font-size: 24px;">{{ tag_name }}</a></h1>
+    <h1><a href="#" style="font-size: 24px;">{{ tag.name }}</a></h1>
 </div>
 
 <div class="col-9">
     <div class="d-flex flex-column gap-3">
-        {% for question in questions %}
+        {% for card in cards %}
         {% include 'layouts/question.html' %}
         {% endfor %}
 

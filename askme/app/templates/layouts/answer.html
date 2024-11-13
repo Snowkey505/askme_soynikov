@@ -12,19 +12,23 @@
                     <button class="btn btn-light">
                         <img src="../static/img/dislike.png" alt="-" class="img-fluid" style="height: 40px;">
                     </button>
-                    <h2 style="color: black;">0</h2>
+                    <h2 style="color: black;">answer.likes_count</h2>
                     <button class="btn btn-light">
                         <img src="../static/img/like.png" alt="+" class="img-fluid" style="height: 40px;">
                     </button>
                 </div>
             </div>
             <div class="col-9">
-                <p class="card-text">{{ answer }}</p>
+                <p class="card-text">{{ answer.text }}</p>
                 <div class="d-flex gap-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="check01">
-                        <label class="form-check-label" for="check01">
-                            Correct!
+                    <div class="form-check col-1">
+                        {% if answer.correct == True %}
+                        <input class="form-check-input" type="checkbox" id="checkbox-1" checked readonly>
+                        {% else %}
+                        <input class="form-check-input" type="checkbox" id="checkbox-2" readonly>
+                        {% endif %}
+                        <label class="form-check-label" for="checkbox-2">
+                            Correct
                         </label>
                     </div>
                 </div>
